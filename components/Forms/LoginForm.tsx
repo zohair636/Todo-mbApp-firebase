@@ -40,7 +40,7 @@ const LoginForm = () => {
         <View key={item.register} style={{ marginVertical: 2 }}>
           <Text style={authStyle.inputLabel}>{item.label}</Text>
           <Controller
-            name={item.register}
+            name={item.register as "email" | "password"}
             control={control}
             rules={{ required: true }}
             render={({ field: { onChange, onBlur, value } }) => (
