@@ -7,10 +7,8 @@ export default function RootLayout() {
       initialRouteName="index"
       screenOptions={{
         headerShown: false,
-        statusBarBackgroundColor: appColor.black,
+        statusBarBackgroundColor: appColor.primary,
       }}
-    >
-      <Stack.Screen name="auth/login" />
-    </Stack>
+    />
   );
 }

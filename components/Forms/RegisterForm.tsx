@@ -1,46 +1,61 @@
 import { View, Text, TextInput, Pressable } from "react-native";
 import React, { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { LoginData } from "@/global/type";
-import { LoginHelperFunction } from "@/helpers/AuthHelper";
-import AuthButton from "../Buttons/AuthButton";
-import { ButtonText } from "@/global/text";
-import { authStyle } from "@/stylesheet/authStyle";
-import { appColor } from "@/global/color";
-import { buttonStyle } from "@/stylesheet/buttonStyle";
-import { router } from "expo-router";
+import { RegisterHelperFunction } from "../../helpers/AuthHelper";
+import { RegisterData } from "../../global/type";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
+import { authStyle } from "@/stylesheet/authStyle";
+import { appColor } from "@/global/color";
+import AuthButton from "../Buttons/AuthButton";
+import { ButtonText } from "@/global/text";
+import { buttonStyle } from "@/stylesheet/buttonStyle";
+import { router } from "expo-router";
 
-const schema = z.object({
-  email: z.string().email("Please enter valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters long"),
-});
+const schema = z
+  .object({
+    name: z.string().min(1, "Name is required"),
+    email: z.string().email("Please enter valid email address"),
+    password: z.string().min(6, "Password must be at least 6 characters long"),
+    confirmPassword: z
+      .string()
+      .min(6, "Password must be at least 6 characters long"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Password do not match",
+    path: ["confirmPassword"],
+  });
 
-const LoginForm = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const userLogin = LoginHelperFunction(showPassword);
+const RegisterForm = () => {
+  const [showPassword, setShowPassword] = useState<boolean[]>([]);
+  const userRegistration = RegisterHelperFunction(showPassword);
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm({ resolver: zodResolver(schema) });
 
-  const handleShowPassword = () => {
-    setShowPassword((prev) => !prev);
+  const handleShowPassword = (index: number) => {
+    setShowPassword((prev) => {
+      const password = [...prev];
+      password[index] = !password[index];
+      return password;
+    });
   };
 
-  const onSubmit = (data: LoginData) => {
+  const onSubmit = (data: RegisterData) => {
     console.log(data);
   };
 
   return (
     <View style={authStyle.formContainer}>
-      {userLogin.map((item) => (
+      {userRegistration.map((item, index) => (
         <View key={item.register} style={{ marginVertical: 2 }}>
           <Text style={authStyle.inputLabel}>{item.label}</Text>
           <Controller
-            name={item.register as "email" | "password"}
+            name={
+              item.register as "name" | "email" | "password" | "confirmPassword"
+            }
             control={control}
             rules={{ required: true }}
             render={({ field: { onChange, onBlur, value } }) => (
@@ -63,43 +78,41 @@ const LoginForm = () => {
                     secureTextEntry={item.secureEntry}
                   />
                 </View>
-                <Pressable onPress={handleShowPassword}>
+                <Pressable onPress={() => handleShowPassword(index)}>
                   {item.password_icon}
                 </Pressable>
               </View>
             )}
           />
-          {errors[item.register as "email" | "password"] && (
+          {errors[
+            item.register as "name" | "email" | "password" | "confirmPassword"
+          ] && (
             <Text style={authStyle.error}>
-              {errors[item.register as "email" | "password"]?.message}
+              {
+                errors[
+                  item.register as
+                    | "name"
+                    | "email"
+                    | "password"
+                    | "confirmPassword"
+                ]?.message
+              }
             </Text>
           )}
         </View>
       ))}
-      {/* forgot password button */}
+      {/* register button */}
       <AuthButton
-        label={ButtonText.FORGOT_PASSWORD_FOLLOW_ON}
-        isLoading={false}
-        onPress={() => router.push("/auth/forgotPassword")}
-        style={{
-          ...buttonStyle.authButton,
-          textAlign: "right",
-          marginVertical: 4,
-        }}
-      />
-      {/* login button */}
-      <AuthButton
-        label={ButtonText.LOGIN}
+        label={ButtonText.REGISTER}
         isLoading={false}
         onPress={handleSubmit(onSubmit)}
         containerStyle={buttonStyle.authButtonContainer}
         style={buttonStyle.authButton}
       />
-      {/* register button */}
+      {/* login follow on button */}
       <AuthButton
-        label={ButtonText.REGISTER_FOLLOW_ON}
-        isLoading={false}
-        onPress={() => router.push("/auth/register")}
+        label={ButtonText.LOGIN_FOLLOW_ON}
+        onPress={() => router.push("/auth/login")}
         style={{
           ...buttonStyle.authButton,
           textAlign: "center",
@@ -110,4 +123,4 @@ const LoginForm = () => {
   );
 };
 
-export default LoginForm;
+export default RegisterForm;
